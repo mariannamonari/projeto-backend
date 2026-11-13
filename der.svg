@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1040" viewBox="0 0 1240 1040" role="img" aria-labelledby="title desc">
+<title id="title">DER — Sistema de Assistência Técnica</title><desc id="desc">Relacionamentos entre usuários e sessões, clientes e equipamentos, equipamentos e agendamentos.</desc>
+<defs><style>
+.bg{fill:#f4f7fb}.box{fill:#fff;stroke:#cbd5e1;stroke-width:2;rx:14}.head{fill:#e9f1ff;stroke:#cbd5e1;stroke-width:2}.entity{font:700 20px Arial,sans-serif;fill:#17304e}.attr{font:15px Arial,sans-serif;fill:#334155}.key{font:700 14px Arial,sans-serif;fill:#245bb5}.rel{stroke:#55708e;stroke-width:2.5;fill:none}.card{font:700 14px Arial,sans-serif;fill:#38536e}.title{font:700 28px Arial,sans-serif;fill:#172536}.legend{font:14px Arial,sans-serif;fill:#536477}
+</style><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#55708e"/></marker></defs>
+<rect class="bg" width="1240" height="1040"/><text class="title" x="48" y="54">Sistema de Assistência Técnica — Diagrama Entidade-Relacionamento</text>
+<!-- relationship lines -->
+<path class="rel" d="M 560 223 C 630 223 630 174 700 174"/><text class="card" x="583" y="206">1</text><text class="card" x="672" y="169">N</text>
+<path class="rel" d="M 350 508 C 350 572 350 595 350 655"/><text class="card" x="361" y="544">1</text><text class="card" x="361" y="646">N</text>
+<path class="rel" d="M 580 755 C 641 755 646 755 700 755"/><text class="card" x="601" y="743">1</text><text class="card" x="673" y="743">N</text>
+<!-- USUARIOS -->
+<g><rect class="box" x="70" y="105" width="490" height="250"/><path class="head" d="M84 105h462a14 14 0 0 1 14 14v45H70v-45a14 14 0 0 1 14-14z"/><text class="entity" x="94" y="142">USUARIOS</text>
+<text class="key" x="94" y="190">PK  id</text><text class="attr" x="94" y="220">nome</text><text class="attr" x="94" y="250">email (UNIQUE)</text><text class="attr" x="94" y="280">senha_hash</text><text class="attr" x="94" y="310">ativo, criado_em</text></g>
+<!-- SESSOES -->
+<g><rect class="box" x="700" y="105" width="470" height="230"/><path class="head" d="M714 105h442a14 14 0 0 1 14 14v45H700v-45a14 14 0 0 1 14-14z"/><text class="entity" x="724" y="142">SESSOES</text>
+<text class="key" x="724" y="190">PK  token_hash</text><text class="key" x="724" y="220">FK  usuario_id → usuarios.id</text><text class="attr" x="724" y="250">expira_em</text><text class="attr" x="724" y="280">criada_em</text></g>
+<!-- CLIENTES -->
+<g><rect class="box" x="70" y="400" width="510" height="255"/><path class="head" d="M84 400h482a14 14 0 0 1 14 14v45H70v-45a14 14 0 0 1 14-14z"/><text class="entity" x="94" y="437">CLIENTES</text>
+<text class="key" x="94" y="485">PK  id</text><text class="attr" x="94" y="515">nome, email (UNIQUE)</text><text class="key" x="94" y="545">UNIQUE  cpf_hash (HMAC)</text><text class="attr" x="94" y="575">cpf_criptografado, telefone</text><text class="attr" x="94" y="605">criado_em</text></g>
+<!-- EQUIPAMENTOS -->
+<g><rect class="box" x="70" y="655" width="510" height="300"/><path class="head" d="M84 655h482a14 14 0 0 1 14 14v45H70v-45a14 14 0 0 1 14-14z"/><text class="entity" x="94" y="692">EQUIPAMENTOS</text>
+<text class="key" x="94" y="740">PK  id</text><text class="key" x="94" y="770">FK  cliente_id → clientes.id</text><text class="attr" x="94" y="800">tipo, marca, modelo</text><text class="attr" x="94" y="830">numero_serie (UNIQUE)</text><text class="attr" x="94" y="860">descricao, criado_em</text></g>
+<!-- AGENDAMENTOS -->
+<g><rect class="box" x="700" y="625" width="470" height="300"/><path class="head" d="M714 625h442a14 14 0 0 1 14 14v45H700v-45a14 14 0 0 1 14-14z"/><text class="entity" x="724" y="662">AGENDAMENTOS</text>
+<text class="key" x="724" y="710">PK  id</text><text class="key" x="724" y="740">FK  equipamento_id → equipamentos.id</text><text class="attr" x="724" y="770">data_agendamento</text><text class="attr" x="724" y="800">descricao</text><text class="attr" x="724" y="830">status</text><text class="attr" x="724" y="860">criado_em</text></g>
+<rect x="70" y="980" width="20" height="20" rx="4" fill="#e9f1ff" stroke="#cbd5e1"/><text class="legend" x="100" y="996">PK = chave primária</text><rect x="280" y="980" width="20" height="20" rx="4" fill="#e9f1ff" stroke="#cbd5e1"/><text class="legend" x="310" y="996">FK = chave estrangeira</text><text class="legend" x="560" y="996">1 — N = um para muitos</text><text class="legend" x="785" y="996">CPF cifrado com AES-256-GCM; HMAC para unicidade</text>
+</svg>

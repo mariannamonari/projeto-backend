@@ -1,22 +1,16 @@
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
+import path from "node:path";
 import { DatabaseModel } from "./model/DatabaseModel.js";
-import { createCatalogRouter } from "./routes/catalogRoutes.js";
+import { createAssistanceRouter } from "./routes/assistanceRoutes.js";
+import { HttpError } from "./shared/HttpError.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 
 app.use(cors());
-app.use(express.json());
-
-app.get("/", (_request, response) => {
-  response.json({
-    name: "Loja Online Skin Care API",
-    version: "1.0.0",
-    endpoints: ["/health", "/api/products", "/api/categories", "/api/brands"],
-  });
-});
+app.use(express.json({ limit: "32kb" }));
 
 async function startServer(): Promise<void> {
   let database: DatabaseModel | undefined;
@@ -32,7 +26,7 @@ async function startServer(): Promise<void> {
       return;
     }
 
-    app.get("/health", async (_request, response, next) => {
+    app.get("/api/health", async (_request, response, next) => {
       try {
         await database!.pool.query("SELECT 1");
         response.json({ status: "ok", database: "connected" });
@@ -40,14 +34,28 @@ async function startServer(): Promise<void> {
         next(error);
       }
     });
-    app.use("/api", createCatalogRouter(database.pool));
+    app.use("/api", createAssistanceRouter(database.pool));
+    app.use(express.static(path.resolve(process.cwd(), "sistema")));
     app.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
+      const databaseError = error as { code?: string };
+      if (error instanceof HttpError) {
+        response.status(error.status).json({ error: error.message });
+        return;
+      }
+      if (databaseError.code === "23505") {
+        response.status(409).json({ error: "Já existe um registro com esses dados (e-mail, CPF ou número de série)." });
+        return;
+      }
+      if (databaseError.code === "23503") {
+        response.status(409).json({ error: "Não é possível excluir este registro: existem equipamentos ou agendamentos vinculados." });
+        return;
+      }
       console.error("Request failed:", error);
       response.status(500).json({ error: "Erro interno do servidor." });
     });
 
     const server = app.listen(port, () => {
-      console.log(`Server running at http://localhost:${port}`);
+      console.log(`Sistema de assistência técnica em http://localhost:${port}`);
     });
 
     const shutdown = (): void => {

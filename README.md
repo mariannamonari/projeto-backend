@@ -1,42 +1,42 @@
-# Loja Online Skin Care — API
+# Oficina — Sistema de Assistência Técnica
 
-API REST em Node.js, Express, TypeScript e PostgreSQL, organizada em model/controller/routes. A aplicação usa o banco PostgreSQL já criado com o esquema da loja enviado.
+Aplicação web com login e sessão expirada, módulos de clientes, equipamentos e agendamentos, API Express/TypeScript e banco PostgreSQL.
 
-## Requisitos
+## Requisitos para executar
 
 - Node.js 20 ou superior
-- PostgreSQL com as tabelas `produtos`, `categorias`, `marcas` e `avaliacoes` criadas
+- PostgreSQL 16 ou superior recomendado (o servidor deste ambiente foi confirmado como PostgreSQL 18.1)
 
-## Configuração
+## Preparar o banco e o ambiente
 
-1. Instale as dependências com `npm install`.
-2. Copie `.env.example` para `.env` e ajuste as credenciais do PostgreSQL (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` e `DB_PASSWORD`).
-3. Inicie em desenvolvimento com `npm run dev`.
-4. Para compilar e executar a versão de produção, use `npm run build` e depois `npm start`.
+1. Crie um banco vazio chamado `assistencia_tecnica` no PostgreSQL.
+2. Copie `.env.example` para `.env` e informe os dados do seu PostgreSQL. Defina uma chave privada de 64 caracteres hexadecimais em `CPF_ENCRYPTION_KEY`; o valor do exemplo serve somente para demonstração e nunca deve ser usado em produção.
+3. Execute `npm run db:init` **uma única vez** no banco vazio, confirmando a operação destrutiva no PowerShell com `$env:CONFIRM_RESET="YES"` e, em seguida, `npm run db:init`. O script apaga e recria as tabelas deste sistema. O `init.sql` também pode ser rodado pelo pgAdmin.
+4. Instale as dependências e compile com `npm install` e `npm run build`.
+5. Inicie com `npm run dev` ou `npm start` e abra `http://localhost:3000`.
 
-Por padrão, a API inicia em `http://localhost:3000`. A porta pode ser alterada pela variável `PORT`.
+O painel é servido pelo próprio backend na pasta `sistema`. `GET /api/health` verifica a conexão com PostgreSQL. A variável `SESSION_TTL_HOURS` configura a duração da sessão; o padrão é oito horas.
 
-## Endpoints
+## Usuário de demonstração
 
-| Método | Endpoint | Descrição |
-| --- | --- | --- |
-| `GET` | `/` | Informações básicas da API |
-| `GET` | `/health` | Estado da API e conexão com o banco |
-| `GET` | `/api/products` | Lista produtos ativos, com filtros e paginação |
-| `GET` | `/api/products/:id` | Detalhes de um produto ativo |
-| `GET` | `/api/categories` | Lista categorias |
-| `GET` | `/api/brands` | Lista marcas |
+`ana@assistencia.local` — senha `Assist@123`. O script contém mais duas contas demonstrativas com a mesma senha inicial. Troque ou remova essas contas antes de expor a aplicação.
 
-### Filtros de produtos
+## Módulos da aplicação
 
-`GET /api/products` aceita os parâmetros opcionais `search`, `category` (slug), `brand`, `skinType`, `available`, `minPrice`, `maxPrice`, `page` e `limit`.
+- **Clientes:** busca por nome/e-mail/telefone, cadastro, edição e exclusão protegida por relacionamentos.
+- **Equipamentos:** cadastro sempre vinculado a um cliente existente.
+- **Agendamentos:** lista cronológica com os dados do cliente/equipamento e atualização de data e hora.
+- **Autenticação:** sessão Bearer persistida por hash no banco, expiração configurável e logout.
 
-Exemplo: `/api/products?category=hidratantes&skinType=seca&available=true&page=1&limit=12`
+## Documentação e entregas
 
-A resposta da lista contém `data` e `pagination` (`page`, `limit`, `total` e `totalPages`). Preços são retornados como números, usando o preço promocional quando disponível.
+- [documentacao.md](documentacao.md): requisitos funcionais, infraestrutura, instruções e rotas.
+- [der.svg](der.svg): diagrama entidade-relacionamento em formato vetorial.
+- `documentacao.pdf` e `der.pdf`: entregáveis prontos, gerados com `npm run export:docs`.
+- [init.sql](init.sql): criação das tabelas e pelo menos três registros em cada tabela.
 
-## Observações
+A documentação registra PostgreSQL 18.1, versão consultada no servidor configurado neste ambiente. Se a entrega usar outro servidor, confirme a versão com `SELECT version();`.
 
-- As consultas usam parâmetros PostgreSQL para evitar interpolar entrada do usuário no SQL.
-- Senhas de clientes devem ser armazenadas somente como hash; credenciais e segredos ficam no `.env`, que não deve ser versionado.
-- A API atual cobre a leitura do catálogo. Fluxos de autenticação, carrinho, pedidos e pagamentos devem ser implementados com autenticação e validações próprias antes de expor operações de escrita.
+## Segurança e limitações
+
+Senhas usam scrypt. O CPF é cifrado com AES-256-GCM; um HMAC-SHA-256 permite verificar unicidade sem armazenar o CPF em texto puro. A chave de criptografia não deve ser compartilhada nem versionada; trocar/perder a chave torna os CPFs já gravados indecifráveis. O token fica no armazenamento local do navegador para facilitar a demonstração acadêmica; uma implantação pública requer HTTPS, gestão de segredos, política de backup e revisão de segurança.

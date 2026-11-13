@@ -5,11 +5,19 @@ export class DatabaseModel {
   private readonly _pool: Pool;
 
   constructor() {
-    const requiredVariables = ["DB_HOST", "DB_NAME", "DB_USER", "DB_PASSWORD"] as const;
+    const requiredVariables = ["DB_HOST", "DB_NAME", "DB_USER", "DB_PASSWORD", "CPF_ENCRYPTION_KEY"] as const;
     const missingVariables = requiredVariables.filter((name) => !process.env[name]);
 
     if (missingVariables.length > 0) {
       throw new Error(`Missing database environment variables: ${missingVariables.join(", ")}`);
+    }
+
+    if (!/^[\da-fA-F]{64}$/.test(process.env.CPF_ENCRYPTION_KEY ?? "")) {
+      throw new Error("CPF_ENCRYPTION_KEY must contain exactly 64 hexadecimal characters");
+    }
+    const sessionTtlHours = Number(process.env.SESSION_TTL_HOURS ?? 8);
+    if (!Number.isInteger(sessionTtlHours) || sessionTtlHours < 1 || sessionTtlHours > 168) {
+      throw new Error("SESSION_TTL_HOURS must be an integer between 1 and 168");
     }
 
     const port = Number(process.env.DB_PORT ?? 5432);
